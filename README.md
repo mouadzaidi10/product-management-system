@@ -9,12 +9,12 @@
 
 # Product Import and Synchronization
 
-This project is designed to import product data from both a CSV file and an external API.
+This project is designed to import product data from CSV, JSON, XML files, and an external API.
 
 ## Features
 
-- Import products from a CSV file.
-- Soft delete outdated products that are no longer in the CSV file.
+- Import products from CSV, JSON, and XML files.
+- Soft delete outdated products that are no longer in the source files or API.
 - Fetch product data from an external API.
 - Insert product variations (color, size, quantity, availability) into the database.
 
@@ -70,30 +70,81 @@ This will create the necessary tables for the products and their variations in y
 If you want to run the product import manually, you can execute the command:
 
 ```bash
-php artisan import:products
+php artisan products:import {source}
 ```
 
-This will:
-
-- Import products from the CSV file.
-- Sync product data from the external API.
-- Soft delete any outdated products from the database.
+Replace `{source}` with `csv`, `json`, `xml`, or `api` to specify the data source.
 
 #### Command Usage
 
-The main functionality is encapsulated in the ```import:products``` command, which imports and synchronizes products.
+
+The main functionality is encapsulated in the `products:import` command, which imports and synchronizes products from different sources.
 
 ### Example CSV Format
 
 The CSV file used for import should follow this format:
 
 ```
-name,sku,status,variations,price,currency
 "Wireless Mouse","MOUSE123","active","color: black, size: medium",25.99,"USD"
 "Mechanical Keyboard","KEYB456","active","color: white, size: large",79.99,"USD"
 "Gaming Headset","HEAD789","inactive","color: red, size: standard",49.99,"USD"
 "USB-C Charger","CHARG101","active","color: black, size: standard",19.99,"USD"
 "Portable SSD","SSD202","active","color: grey, size: 1TB",129.99,"USD"
+```
+
+### Example JSON Format
+
+The JSON file should be structured as follows:
+
+
+```json
+[
+    {
+        "id": 1,
+        "name": "Product A",
+        "sku": "PROD_A_123",
+        "status": "active",
+        "price": 19.99,
+        "currency": "USD"
+    },
+    {
+        "id": 2,
+        "name": "Product B",
+        "sku": "PROD_B_456",
+        "status": "inactive",
+        "price": 29.99,
+        "currency": "EUR"
+    }
+]
+
+```
+
+
+### Example XML Format
+
+The XML file should follow this structure:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<products>
+    <product>
+        <id>1</id>
+        <name>Product A XML</name>
+        <sku>PROD_A_123</sku>
+        <status>active</status>
+        <price>19.99</price>
+        <currency>USD</currency>
+    </product>
+    <product>
+        <id>2</id>
+        <name>Product B XML</name>
+        <sku>PROD_B_456</sku>
+        <status>inactive</status>
+        <price>29.99</price>
+        <currency>EUR</currency>
+    </product>
+</products>
+
 ```
 
 ### External API Integration
@@ -110,12 +161,14 @@ Any products in the database that are no longer in the CSV file or the API respo
 
 ## Architecture
 
-This system follows the MVC architecture and uses the following key components:
+This system follows the MVC architecture and uses the **Strategy Pattern** to handle multiple data sources efficiently:
 
-- Product Model: Handles the ```products``` table, where product details (name, SKU, price, etc.) are stored.
-- ProductVariation Model: Handles the ```product_variations``` table, which stores product variations like color, size, quantity, etc.
-- ImportProducts Command: A custom Artisan command responsible for importing products from the CSV and external API, and soft deleting outdated products.
-- Database Migrations: Define the structure for the ```products``` and ```product_variations``` tables.
+- **Product Model**: Handles the `products` table, where product details (name, SKU, price, etc.) are stored.
+- **ProductVariation Model**: Handles the `product_variations` table, which stores product variations like color, size, quantity, etc.
+- **ImportProducts Command**: A custom Artisan command responsible for importing products from multiple sources dynamically.
+- **Strategy Pattern**: Ensures easy extension for new import sources with minimal code changes.
+- **Database Migrations**: Define the structure for the `products` and `product_variations` tables.
+
 
 ## License
 
